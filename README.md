@@ -82,7 +82,7 @@ We provide ready-to-run scripts for different model families:
 python examples/mobilenet_example.py
 ```
 
-Loads pretrained MobileNetV2 on CIFAR-10 and runs NAS with zero-cost proxies.
+Loads pretrained MobileNet on CIFAR-10 and runs NAS with zero-cost proxies.
 
 ### 🟦 ResNet Example (CNN)
 
