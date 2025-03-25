@@ -3,6 +3,11 @@
 # 🔍 Advanced AZ-NAS for MobileNet(example) on CIFAR-10
 
 This project implements **Zero-Cost Neural Architecture Search (NAS)** using AZ-NAS ranking to discover efficient MobileNet architectures on the CIFAR-10 dataset. It includes both lightweight proxy-based search and optional real training-based evaluation.
+# 📂 Note on This Repository Structure
+
+    # ⚠️ Disclaimer: This folder serves only as an example implementation of the proposed AZ-NAS method applied to the MobileNet search space on CIFAR-10.
+    It is not the main implementation used for running comprehensive experiments across multiple models and search spaces.
+    For the full pipeline and generalizable NAS framework, please refer to the main file directory.
 
 ---
 
