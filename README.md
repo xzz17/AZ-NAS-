@@ -14,7 +14,7 @@ Clone the repository and install the package in development mode:
 git clone https://github.com/xzz17/Advanced-AZ-NAS.git
 cd Advanced-AZ-NAS/MobileNet
 pip install -e .
-
+```
 ## 🚀 Zero-Cost NAS Search
 
 Run the following Python script to start a random search using AZ-NAS ranking:
