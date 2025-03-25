@@ -23,7 +23,7 @@ Run the following Python script to start a random search using AZ-NAS ranking:
 from aznas import run
 
 best_score, best_config = run(n_samples=100)
-
+```
 This will:
 
     Search over randomly sampled MobileNet configurations
