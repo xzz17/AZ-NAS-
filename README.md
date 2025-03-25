@@ -18,12 +18,6 @@ Install all dependencies via:
 pip install -r requirements.txt
 ```
 
-Or manually:
-
-```bash
-pip install torch torchvision transformers optuna datasets scikit-learn accelerate
-```
-
 
 ## 🧪 Quick Start
 
