@@ -1,6 +1,6 @@
-# Advanced_AZ_NAS
+# Advanced AZ-NAS
 
-**Advanced_AZ_NAS** is an automated model training and zero-cost NAS (Neural Architecture Search) ranking framework that supports both CNN and Transformer-based models. It integrates [Optuna](https://optuna.org/) for hyperparameter search and multiple zero-cost proxy metrics (like expressivity, trainability, synflow, etc.) to evaluate model quality without requiring full training.
+**Advanced AZ-NAS** is an automated model training and zero-cost NAS (Neural Architecture Search) ranking framework that supports both CNN and Transformer-based models. It integrates [Optuna](https://optuna.org/) for hyperparameter search and multiple zero-cost proxy metrics (like expressivity, trainability, synflow, etc.) to evaluate model quality without requiring full training.
 
 ## 🚀 Features
 
