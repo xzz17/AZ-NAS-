@@ -1,0 +1,12 @@
+Metadata-Version: 2.2
+Name: aznas
+Version: 0.1
+Summary: Zero-Cost NAS with AZ-NAS ranking for MobileNet on CIFAR-10
+Author: Tan Xinyuan
+Requires-Dist: torch
+Requires-Dist: torchvision
+Requires-Dist: numpy
+Requires-Dist: scipy
+Dynamic: author
+Dynamic: requires-dist
+Dynamic: summary

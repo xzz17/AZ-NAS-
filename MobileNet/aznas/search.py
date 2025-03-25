@@ -1,5 +1,6 @@
 import time
 import numpy as np
+import json
 from .mobilenet import build_mobilenet_from_config
 from .scores import (
     expressivity_score,
@@ -69,6 +70,7 @@ def run_zc_random_search(n_samples=96, seed=123):
     return az_nas_ranking(scores_history), configs, scores_history
 
 
+
 def run(n_samples=300, seed=123):
     print("Starting Zero-Cost NAS (Random Search) for MobileNet on CIFAR-10...")
 
@@ -92,5 +94,10 @@ def run(n_samples=300, seed=123):
     print("\n=== Best Zero-Cost NAS Structure ===")
     print(f"AZ-NAS Score: {best_score:.4f}")
     print(f"Config: {best_config}")
+
+    # ✅ 保存最优结构到 JSON 文件
+    with open("best_config.json", "w") as f:
+        json.dump(best_config, f, indent=4)
+        print("✅ Saved best_config.json")
 
     return best_score, best_config
