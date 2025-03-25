@@ -42,7 +42,7 @@ def train_and_evaluate(model, train_loader, test_loader, epochs=10):
     return final_acc
 
 
-# Optuna 搜索空间定义
+# Optuna search space definition
 def sample_config(trial):
     return {
         'activation': trial.suggest_categorical('activation', ['relu', 'swish']),
@@ -64,8 +64,8 @@ def evaluate_with_training(trial, results_list):
     try:
         acc = train_and_evaluate(model, train_loader, test_loader, epochs=5)
     except RuntimeError as e:
-        print(f"⚠️ RuntimeError: {e}")
-        acc = 0.0
+        print(f"⚠️ RuntimeError during training: {e}")
+        acc = 0.0  # treat failure as 0 accuracy
 
     results_list.append({'config': config, 'accuracy': acc})
     del model
@@ -84,7 +84,7 @@ def tpe_search_with_training(n_trials=10, seed=123):
     end_time = time.time()
     search_time = end_time - start_time
 
-    print("\n===== TPE 最优结构（真实训练）=====")
+    print("\n===== Best Architecture Found via TPE (with real training) =====")
     print(f"Best Config: {study.best_params}")
     print(f"Best Accuracy: {-study.best_value:.2f}%")
     print(f"TPE Search Time: {search_time:.2f} seconds")
