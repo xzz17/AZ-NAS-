@@ -110,8 +110,8 @@ def search_space(trial, model_type):
             "num_attention_heads": trial.suggest_categorical("num_attention_heads", [2, 4, 8]),
             "intermediate_size": trial.suggest_categorical("intermediate_size", [512, 1024, 2048]),
 
-            "attention_probs_dropout_prob": trial.suggest_float("attention_probs_dropout_prob", 0.1, 0.3),
-            "hidden_dropout_prob": trial.suggest_float("hidden_dropout_prob", 0.1, 0.3),
+            #"attention_probs_dropout_prob": trial.suggest_float("attention_probs_dropout_prob", 0.1, 0.3),
+            #"hidden_dropout_prob": trial.suggest_float("hidden_dropout_prob", 0.1, 0.3),
             "classifier_dropout": trial.suggest_float("classifier_dropout", 0.1, 0.3),
         }
     else:
@@ -191,22 +191,27 @@ def complexity_score(model):
 
 def synflow_score_resnet(model, dummy_images):
     model.eval()
-    input_data = torch.ones_like(dummy_images)
 
-    if torch.isnan(input_data).any() or torch.isinf(input_data).any():
-        print("Warning: dummy_images contains NaN or Inf!")
-        return float('nan')
+    # Disable BatchNorm tracking (crucial for single-batch SynFlow)
+    for m in model.modules():
+        if isinstance(m, nn.BatchNorm2d):
+            m.track_running_stats = False
+            m.running_mean = None
+            m.running_var = None
+            m.training = False  # 👈 强制关闭 BatchNorm 训练状态
+
+    # Use constant input for SynFlow
+    input_data = torch.ones_like(dummy_images)
 
     for param in model.parameters():
         if param.requires_grad:
-            param.data.abs_()
+            param.data = param.data.abs()
 
     model.zero_grad()
-
     output = model(input_data).sum()
 
     if torch.isnan(output) or torch.isinf(output):
-        print(f"Warning: Model output is NaN or Inf! Output: {output.item()}")
+        print("[SynFlow] Output is NaN or Inf.")
         return float('nan')
 
     output.backward()
@@ -214,16 +219,17 @@ def synflow_score_resnet(model, dummy_images):
     score = 0.0
     for name, param in model.named_parameters():
         if param.grad is not None:
-            if torch.isnan(param.grad).any():
-                print(f"Warning: Gradient is NaN in {name}")
+            if torch.isnan(param.grad).any() or torch.isinf(param.grad).any():
+                print(f"[SynFlow] Gradient NaN/Inf in: {name}")
                 return float('nan')
             score += (param.grad * param).abs().sum().item()
 
     return score
+
 #Tiny Bert
 
 # **Zero-cost proxy: Expressivity**
-def expressivity_score_transformer(model):
+def expressivity_score_transformer(model, tokenizer):
     model.eval()
     with torch.no_grad():
       dummy_input = torch.randint(0, tokenizer.vocab_size, (1, 128)).to(next(model.parameters()).device)
@@ -247,7 +253,7 @@ def expressivity_score_transformer(model):
     return entropy
 
 # **Zero-cost proxy: Progressivity**
-def progressivity_score_transformer(model):
+def progressivity_score_transformer(model, tokenizer):
     model.eval()
     with torch.no_grad():
       device = next(model.parameters()).device
@@ -271,7 +277,7 @@ def progressivity_score_transformer(model):
     return sP
 
 # **Zero-cost proxy: Trainability**
-def trainability_score_transformer(model):
+def trainability_score_transformer(model, tokenizer):
     model.train()
     dummy_input = torch.randint(0, tokenizer.vocab_size, (1, 128)).float().to(next(model.parameters()).device).requires_grad_()
     attention_mask = torch.ones_like(dummy_input)
@@ -387,7 +393,6 @@ def az_nas_ranking(scores_dict):
     for i in range(m):
         score = sum([np.log(max(ranks[p][i] / m, 1e-8)) for p in proxies])
         final_scores.append(score)
-    print(final_scores)
     return final_scores
 
 def az_nas_ranking_CNN(scores_dict, proxy_ordering=None):
@@ -423,14 +428,14 @@ proxy_ordering = {
     'synflow': 'desc'
 }
 
-def zero_cost_proxies(model, input_shape, device='cuda', train_loader=None, train_dataset=None, test_dataset=None):
+def zero_cost_proxies(model, input_shape, device='cuda', train_loader=None, train_dataset=None, test_dataset=None, tokenizer=None):
     model_type = get_model_type(model)
     global scores_history
 
     if model_type == "transformer":
-        expressivity = expressivity_score_transformer(model)
-        progressivity = progressivity_score_transformer(model)
-        trainability = trainability_score_transformer(model)
+        expressivity = expressivity_score_transformer(model, tokenizer)
+        progressivity = progressivity_score_transformer(model, tokenizer)
+        trainability = trainability_score_transformer(model, tokenizer)
         synflow = synflow_score_transformer(model)
     elif model_type == "cnn_resnet":
         train_loader = DataLoader(train_dataset, batch_size=64, shuffle=True)
@@ -557,7 +562,7 @@ scores_history = {
         "synflow": [],
         "progressivity": []
     }
-def auto_train_model(model, train_dataset, test_dataset, input_shape, num_trials=10, save_path="best_model.pth", checkpoint="bert-base-uncased", batch_size=64):
+def auto_train_model(model, train_dataset, test_dataset, input_shape, num_trials=10, save_path="best_model.pth", checkpoint="bert-base-uncased", batch_size=64, tokenizer=None):
     device = "cuda"
     print(f"Using device: {device}")
     model.to(device)
@@ -574,7 +579,7 @@ def auto_train_model(model, train_dataset, test_dataset, input_shape, num_trials
         "progressivity": []
     }
 
-    def objective(trial):
+    def objective(trial, tokenizer=tokenizer):
         params = search_space(trial, model_type)
 
         if model_type == "transformer":
@@ -585,11 +590,11 @@ def auto_train_model(model, train_dataset, test_dataset, input_shape, num_trials
         else:
             model = initialize_model_from_params(model_type, params).to(device)
         
-        score = zero_cost_proxies(model, input_shape, device, train_dataset=train_dataset, test_dataset=test_dataset)
+        score = zero_cost_proxies(model, input_shape, device, train_dataset=train_dataset, test_dataset=test_dataset, tokenizer=tokenizer)
         params_history.append(params)
-        return score["synflow"][-1]
+        return 0
 
-
+    optuna.logging.set_verbosity(optuna.logging.CRITICAL) 
     study = optuna.create_study(direction="maximize", sampler=optuna.samplers.RandomSampler())
     study.optimize(objective, n_trials=num_trials)
 
