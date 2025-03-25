@@ -1,3 +1,3 @@
 from aznas import run
 
-run(n_samples=300)
+run(n_samples=100)
