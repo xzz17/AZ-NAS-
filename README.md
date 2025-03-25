@@ -53,7 +53,7 @@ auto_train_model(
 | `input_shape`  | `tuple`       | Shape of dummy input for proxy computation (e.g., `(1, 128)`)             |
 | `num_trials`   | `int`         | Number of trials for hyperparameter search                                |
 | `save_path`    | `str`         | Path to save the best trained model                                       |
-| `checkpoint`   | `str`         | HuggingFace model checkpoint name (for Transformers)                      |
+| `checkpoint`   | `str`         | (Optional) HuggingFace model checkpoint name (only required for Transformer models)                     |
 | `batch_size`   | `int`         | Batch size for training                                                   |
 | `tokenizer`    | `Tokenizer`   | (Optional) HuggingFace tokenizer (only required for Transformer models)   |
 
