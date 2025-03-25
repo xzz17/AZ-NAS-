@@ -54,11 +54,11 @@ This script will:
 ## 🎯 Real NAS with TPE + Training (Optional)
 
 If you want to perform architecture search using real training (not zero-cost), you can use Optuna's TPE sampler:
-
+```
 from aznas.train import tpe_search_with_training
 
 study, results, time_cost = tpe_search_with_training(n_trials=30)
-
+```
 This function will:
 
     Use Optuna TPE to suggest MobileNet configurations
